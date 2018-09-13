@@ -1,7 +1,10 @@
 bootstrap_common: &bootstrap_common
   pull: true
+  commands:
+    - mkdir -p /opt/metwork-mfcom-${DRONE_BRANCH}
+    - ./bootstrap.sh /opt/metwork-mfcom-${DRONE_BRANCH} /opt/metwork-mfext-$${MFEXT_BRANCH}
+    - cat adm/root.mk
 
-    
 build_common: &build_common
   commands:
     - mkdir -p /opt/metwork-mfcom-${DRONE_BRANCH}
@@ -25,22 +28,18 @@ publish_ci_common: &publish_ci_common
   
 pipeline:
   bootstrap_integration:
-    <<: *bootstrap_common
     image: metwork/mfcom-${OS_VERSION}-buildimage:integration
-    commands:
-      - mkdir -p /opt/metwork-mfcom-${DRONE_BRANCH}
-      - ./bootstrap.sh /opt/metwork-mfcom-${DRONE_BRANCH} /opt/metwork-mfext-integration
-      - cat adm/root.mk
+    environment:
+      - MFEXT_BRANCH=integration
+    <<: *bootstrap_common
     when:
       event: [push, pull_request]
       branch: integration
   bootstrap:
-    <<: *bootstrap_common
     image: metwork/mfcom-${OS_VERSION}-buildimage:master
-    commands:
-      - mkdir -p /opt/metwork-mfcom-${DRONE_BRANCH}
-      - ./bootstrap.sh /opt/metwork-mfcom-${DRONE_BRANCH} /opt/metwork-mfext-master
-      - cat adm/root.mk
+    environment:
+      - MFEXT_BRANCH=master
+    <<: *bootstrap_common
     when:
       event: [push, pull_request]
       branch:
