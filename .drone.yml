@@ -4,6 +4,7 @@ bootstrap_common: &bootstrap_common
     - mkdir -p /opt/metwork-mfcom-${DRONE_BRANCH}
     - ./bootstrap.sh /opt/metwork-mfcom-${DRONE_BRANCH} /opt/metwork-mfext-$${MFEXT_BRANCH}
     - cat adm/root.mk
+    - env
 
 build_common: &build_common
   commands:
