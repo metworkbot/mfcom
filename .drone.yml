@@ -37,7 +37,7 @@ pipeline:
       event: [push, pull_request]
       branch: integration
   bootstrap:
-    image: metwork/mfcom-${OS_VERSION}-buildimage:${plop1}
+    image: metwork/mfcom-${OS_VERSION}-buildimage:master
     environment:
       - MFEXT_BRANCH=master
     <<: *bootstrap_common
