@@ -1,6 +1,7 @@
 bootstrap_common: &bootstrap_common
   pull: true
   commands:
+      - if test "$${FORCED_OS_VERSION}" != ""; then if test "$${FORCED_OS_VERSION}" != "${OS_VERSION}"; then echo "step bypass"; exit 0; fi; fi
     - mkdir -p /opt/metwork-mfcom-${DRONE_BRANCH}
     - ./bootstrap.sh /opt/metwork-mfcom-${DRONE_BRANCH} /opt/metwork-mfext-$${MFEXT_BRANCH}
     - cat adm/root.mk
@@ -8,6 +9,7 @@ bootstrap_common: &bootstrap_common
 
 build_common: &build_common
   commands:
+      - if test "$${FORCED_OS_VERSION}" != ""; then if test "$${FORCED_OS_VERSION}" != "${OS_VERSION}"; then echo "step bypass"; exit 0; fi; fi
     - mkdir -p /opt/metwork-mfcom-${DRONE_BRANCH}
     - make
     - make doc
@@ -15,10 +17,11 @@ build_common: &build_common
     - cp -Rf /opt/metwork-mfcom-${DRONE_BRANCH}/html_doc .
     - make test
     - make RELEASE_BUILD=${DRONE_BUILD_NUMBER} rpm
-    - mv /opt/metwork-mfcom-${DRONE_BRANCH}/*.rpm .  
-    
+    - mv /opt/metwork-mfcom-${DRONE_BRANCH}/*.rpm .
+
 publish_ci_common: &publish_ci_common
   commands:
+      - if test "$${FORCED_OS_VERSION}" != ""; then if test "$${FORCED_OS_VERSION}" != "${OS_VERSION}"; then echo "step bypass"; exit 0; fi; fi
     - mkdir -p /pub/metwork/continuous_integration/rpms/${DRONE_BRANCH}/${OS_VERSION}/
     - cp *.rpm /pub/metwork/continuous_integration/rpms/${DRONE_BRANCH}/${OS_VERSION}/
     - yum -y install createrepo
@@ -26,7 +29,7 @@ publish_ci_common: &publish_ci_common
     - if test "${OS_VERSION}" = "centos6"; then rm -Rf /pub/metwork/continuous_integration/docs/${DRONE_BRANCH}/mfcom; mkdir -p /pub/metwork/continuous_integration/docs/${DRONE_BRANCH}/mfcom ; cp -Rf html_doc/* /pub/metwork/continuous_integration/docs/${DRONE_BRANCH}/mfcom/ ; fi
   volumes:
     - /pub:/pub
-  
+
 pipeline:
   bootstrap_integration:
     image: metwork/mfcom-${OS_VERSION}-buildimage:integration
@@ -44,7 +47,7 @@ pipeline:
     when:
       event: [push, pull_request]
       branch:
-        exclude: [ integration ]  
+        exclude: [ integration ]
   build_integration:
     <<: *build_common
     image: metwork/mfcom-${OS_VERSION}-buildimage:integration
@@ -57,7 +60,7 @@ pipeline:
     when:
       event: [push, pull_request]
       branch:
-        exclude: [ integration ]  
+        exclude: [ integration ]
   publish_ci_integration:
     <<: *publish_ci_common
     image: metwork/mfcom-${OS_VERSION}-buildimage:integration
