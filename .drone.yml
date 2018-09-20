@@ -74,6 +74,16 @@ pipeline:
       event: [push]
       branch:
         exclude: [ integration ]
+        
+  trigger:
+    image: plugins/downstream
+    fork: true
+    repositories:
+      - metwork-framework/docker-mfxxx-${OS_VERSION}-buildimage@${DRONE_BRANCH}
+    secrets: [ downstream_token, downstream_server ]
+    when:
+      status: [ success ]
+      event: push
 
 matrix:
   OS_VERSION:
