@@ -20,6 +20,4 @@ fi
 PLUGIN_NAME=${1:-}
 shift
 
-set -x
-
 exec layer_wrapper --empty --extra-env-prefix="${MODULE}_CURRENT_PLUGIN" --layers="plugin_${PLUGIN_NAME}@${MODULE_LOWERCASE}" -- $@
