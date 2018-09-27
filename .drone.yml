@@ -45,7 +45,7 @@ pipeline:
       - MFEXT_BRANCH=master
     <<: *bootstrap_common
     when:
-      event: [push, pull_request]
+      event: [push]
       branch:
         exclude: [ integration ]
   build_integration:
@@ -58,7 +58,7 @@ pipeline:
     <<: *build_common
     image: metwork/mfcom-${OS_VERSION}-buildimage:master
     when:
-      event: [push, pull_request]
+      event: [push]
       branch:
         exclude: [ integration ]
   publish_ci_integration:
@@ -73,8 +73,8 @@ pipeline:
     when:
       event: [push]
       branch:
+        include: [ master, pci_* ]
         exclude: [ integration ]
-        
   trigger:
     image: plugins/downstream
     fork: true
@@ -84,8 +84,11 @@ pipeline:
     when:
       status: [ success ]
       event: push
+      branch: [ master, integration ]
 
 matrix:
   OS_VERSION:
     - centos6
     - centos7
+
+branches: [ master, integration, ci_*, pci_* ]
