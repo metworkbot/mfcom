@@ -92,7 +92,7 @@ pipeline:
   trigger:
     image: metwork/drone-downstream-specific-image:${DRONE_BRANCH}
     pull: true
-    secrets: [ drone_server, drone_token ]
+    secrets: [ downstream_server, downstream_token ]
     repositories:
       - metwork-framework/docker-mfxxx-${OS_VERSION}-buildimage@${DRONE_BRANCH}
     when:
