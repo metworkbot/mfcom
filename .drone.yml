@@ -25,7 +25,7 @@ build_common: &build_common
 publish_ci_common: &publish_ci_common
   commands:
     - if test "$${FORCED_OS_VERSION}" != ""; then if test "$${FORCED_OS_VERSION}" != "${OS_VERSION}"; then echo "step bypass"; exit 0; fi; fi
-    - if ! test -f .drone_cache; then echo "step bypass"; exit 0; fi
+    - if ! test -f .drone_cache; then echo "step bypass"; touch .drone_downstream_bypass; exit 0; fi
     - mkdir -p /pub/metwork/continuous_integration/rpms/${DRONE_BRANCH}/${OS_VERSION}/
     - cp *.rpm /pub/metwork/continuous_integration/rpms/${DRONE_BRANCH}/${OS_VERSION}/
     - yum -y install createrepo
@@ -90,11 +90,11 @@ pipeline:
       event: push
       branch: [ master, pci_* ]
   trigger:
-    image: plugins/downstream
-    fork: true
+    image: metwork/drone-downstream-specific-image:${DRONE_BRANCH}
+    pull: true
+    secrets: [ drone_server, drone_token ]
     repositories:
       - metwork-framework/docker-mfxxx-${OS_VERSION}-buildimage@${DRONE_BRANCH}
-    secrets: [ downstream_token, downstream_server ]
     when:
       status: success
       event: push
