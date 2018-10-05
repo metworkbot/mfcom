@@ -28,7 +28,6 @@ publish_ci_common: &publish_ci_common
     - if ! test -f .drone_cache; then echo "step bypass"; touch .drone_downstream_bypass; exit 0; fi
     - mkdir -p /pub/metwork/continuous_integration/rpms/${DRONE_BRANCH}/${OS_VERSION}/
     - cp *.rpm /pub/metwork/continuous_integration/rpms/${DRONE_BRANCH}/${OS_VERSION}/
-    - yum -y install createrepo
     - createrepo --update /pub/metwork/continuous_integration/rpms/${DRONE_BRANCH}/${OS_VERSION}
     - if test "${OS_VERSION}" = "centos6"; then rm -Rf /pub/metwork/continuous_integration/docs/${DRONE_BRANCH}/mfcom; mkdir -p /pub/metwork/continuous_integration/docs/${DRONE_BRANCH}/mfcom ; cp -Rf html_doc/* /pub/metwork/continuous_integration/docs/${DRONE_BRANCH}/mfcom/ ; fi
     - touch /buildcache/build_mfcom_${DRONE_BRANCH}_`cat .drone_cache`
