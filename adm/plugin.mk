@@ -28,13 +28,16 @@ ifneq ("$(REQUIREMENTS2)","")
 endif
 LAYERS=$(shell cat .layerapi2_dependencies |tr '\n' ',' |sed 's/,$$/\n/')
 
-all: $(PREREQ) $(DEPLOY)
+all: $(PREREQ) custom $(DEPLOY)
 
-clean:
+clean::
 	rm -Rf local *.plugin *.tar.gz python?_virtualenv_sources/*.tmp python?_virtualenv_sources/src python?_virtualenv_sources/freezed_requirements.* python?_virtualenv_sources/tempolayer*
 
+custom::
+	echo "override me" >/dev/null
+
 superclean: clean
-	rm -Rf python?_virtualenv_sources/requirements?.txt python?_virtualenv_sources/prerequirements?.txt python?_virtualenv_sources/src
+	rm -Rf python?_virtualenv_sources/requirements?.txt python?_virtualenv_sources/prerequirements?.txt
 
 freeze: superclean $(REQUIREMENTS3) $(REQUIREMENTS2)
 
@@ -72,8 +75,8 @@ python2_virtualenv_sources/src: $(REQUIREMENTS2)
 	    cd python2_virtualenv_sources && layer_wrapper --empty --layers=$(LAYERS) -- download_compile_requirements requirements2.txt; \
 	fi
 
-release: $(PREREQ) clean
+release: clean custom $(PREREQ)
 	layer_wrapper --empty --layers=$(LAYERS) -- _plugins.make --show-plugin-path
 
-develop: $(PREREQ) $(DEPLOY)
+develop: $(PREREQ) custom $(DEPLOY)
 	_plugins.develop $(NAME)
