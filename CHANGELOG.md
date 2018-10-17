@@ -10,6 +10,7 @@
 ### Features
 
 * better plugin build ([24a484d](https://github.com/metwork-framework/mfcom/commit/24a484d))
+* better plugin cleaning (again) ([8c84417](https://github.com/metwork-framework/mfcom/commit/8c84417))
 
 
 
