@@ -5,6 +5,7 @@ ffi.cdef[[
 char *synutil_get_unique_hexa_identifier();
 void g_free(void *data);
 int link(const char *oldpath, const char *newpath);
+long synutil_get_file_size(const char *filepath);
 ]]
 local synutil = ffi.load("synutil")
 
@@ -33,6 +34,14 @@ function _M.exit_with_ngx_error(code, message, log_message)
     ngx.status = code
     ngx.say(message)
     ngx.exit(200) -- yes this is normal
+end
+
+function _M.get_file_size(filepath)
+    if synutil == nil then
+        return nil
+    end
+    local cres = synutil.synutil_get_file_size(filepath)
+    return tonumber(cres)
 end
 
 return _M

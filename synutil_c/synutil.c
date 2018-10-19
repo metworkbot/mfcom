@@ -161,3 +161,18 @@ void synutil_g_free(gpointer pointer)
 {
     g_free(pointer);
 }
+
+/**
+ * Return the file size from a filepath
+ *
+ * @param filepath complete filepath
+ * @return file size (or -1 if problem)
+ */
+long synutil_get_file_size(const gchar *filepath) {
+    struct stat st;
+    if (stat(filepath, &st) == 0) {
+        return st.st_size;
+    } else {
+        return -1;
+    }
+}

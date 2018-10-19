@@ -40,5 +40,6 @@ void synutil_echo_bold(const gchar *message);
 void synutil_echo_clean();
 gchar *synutil_get_unique_hexa_identifier();
 void synutil_g_free(gpointer pointer);
+long synutil_get_file_size(const gchar *filepath);
 
 #endif /* SYNUTIL_H_ */
