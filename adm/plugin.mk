@@ -35,7 +35,7 @@ clean::
 	find . -type d -name "__pycache__" -exec rm -Rf {} \; >/dev/null 2>&1 || true
 
 custom::
-	echo "override me" >/dev/null
+	@echo "override me" >/dev/null
 
 superclean: clean
 	rm -Rf python?_virtualenv_sources/requirements?.txt python?_virtualenv_sources/prerequirements?.txt
