@@ -3,9 +3,9 @@ bootstrap_common: &bootstrap_common
   commands:
     - if test "$${FORCED_OS_VERSION}" != ""; then if test "$${FORCED_OS_VERSION}" != "${OS_VERSION}"; then echo "step bypass"; exit 0; fi; fi
     - mkdir -p /opt/metwork-mfcom-${DRONE_BRANCH}
-    - ./bootstrap.sh /opt/metwork-mfcom-${DRONE_BRANCH} /opt/metwork-mfext-$${MFEXT_BRANCH}
+    - ./bootstrap.sh /opt/metwork-mfcom-${DRONE_BRANCH} /opt/metwork-mfext-$${MFEXT_DIR}
     - cat adm/root.mk
-    - CACHE_HASH=`/opt/metwork-mfext-$${MFEXT_BRANCH}/bin/_build_cache_hash.sh .`
+    - CACHE_HASH=`/opt/metwork-mfext-$${MFEXT_DIR}/bin/_build_cache_hash.sh .`
     - if ! test -f /buildcache/build_mfcom_${DRONE_BRANCH}_$${CACHE_HASH}; then echo $${CACHE_HASH} >.drone_cache; fi
     - env
 
@@ -39,7 +39,7 @@ pipeline:
   bootstrap_integration_push:
     image: metwork/mfcom-${OS_VERSION}-buildimage:integration
     environment:
-      - MFEXT_BRANCH=integration
+      - MFEXT_DIR=master
     <<: *bootstrap_common
     volumes:
       - /buildcache:/buildcache
@@ -49,7 +49,7 @@ pipeline:
   bootstrap_integration_pr:
     image: metwork/mfcom-${OS_VERSION}-buildimage:integration
     environment:
-      - MFEXT_BRANCH=integration
+      - MFEXT_DIR=master
     <<: *bootstrap_common
     when:
       event: pull_request
@@ -57,7 +57,7 @@ pipeline:
   bootstrap:
     image: metwork/mfcom-${OS_VERSION}-buildimage:master
     environment:
-      - MFEXT_BRANCH=master
+      - MFEXT_DIR=master
     <<: *bootstrap_common
     volumes:
       - /buildcache:/buildcache
