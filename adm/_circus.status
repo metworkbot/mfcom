@@ -29,7 +29,7 @@ echo -n "- Checking circus status..."
 echo_running
 N=`pgrep -U ${MODULE_RUNTIME_USER} -f "${IDENTIFY}" |wc -l`
 if test ${N} -gt 0; then
-    timeout 10s _circusctl --endpoint ${ENDPOINT} --timeout=5 globaloptions >/dev/null 2>&1
+    timeout 30s _circusctl --endpoint ${ENDPOINT} --timeout=20 globaloptions >/dev/null 2>&1
     if test $? -eq 0; then
         echo_ok
     else
