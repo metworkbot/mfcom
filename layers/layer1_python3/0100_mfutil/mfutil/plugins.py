@@ -201,11 +201,15 @@ def uninstall_plugin(name, plugins_base_dir=None):
     _postuninstall_plugin(name, version, release)
     x = BashWrapperOrRaise(cmd, MFUtilPluginCantUninstall,
                            "can't uninstall %s" % name)
+    shutil.rmtree(os.path.join(plugins_base_dir, name), ignore_errors=True)
     infos = get_plugin_info(name, mode="name",
                             plugins_base_dir=plugins_base_dir)
     if infos is not None:
         raise MFUtilPluginCantUninstall("can't uninstall plugin %s" % name,
                                         bash_wrapper=x)
+    if os.path.exists(os.path.join(plugins_base_dir, name)):
+        raise MFUtilPluginCantUninstall("can't uninstall plugin %s "
+                                        "(directory still here)" % name)
 
 
 def _postinstall_plugin(name, version, release):
