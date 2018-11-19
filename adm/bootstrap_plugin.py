@@ -7,6 +7,7 @@ from cookiecutter.main import cookiecutter
 from mfutil import get_bash_output_or_die
 import shutil
 import glob
+import sys
 from bash import bash
 
 
@@ -91,6 +92,7 @@ if args.make:
                 if b.code != 0:
                     print("PLUGIN INSTALL ERROR")
                     print("%s" % b.stderr)
+                    sys.exit(1)
 
         if args.delete:
             print("Deleting directory %s, keeping pluging file" %
@@ -103,3 +105,4 @@ if args.make:
     else:
         print("MAKE ERROR")
         print("%s" % b.stderr)
+        sys.exit(1)

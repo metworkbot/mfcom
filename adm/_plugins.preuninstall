@@ -3,8 +3,8 @@
 set -eu
 
 function usage() {
-    echo "usage: _plugins.postinstall NAME VERSION RELEASE"
-    echo "DO NOT USE DIRECTLY ! it's called by plugins.install/develop"
+    echo "usage: _plugins.preuninstall NAME VERSION RELEASE"
+    echo "DO NOT USE DIRECTLY ! it's called by plugins.uninstall"
 }
 
 if test $# -ne 3; then
@@ -22,4 +22,3 @@ PLUGIN_HOME="${MODULE_RUNTIME_HOME}/var/plugins/${NAME}"
 if ! test -d "${PLUGIN_HOME}"; then
     exit 0
 fi
-_install_plugin_virtualenv "${1}" "${2}" "${3}"

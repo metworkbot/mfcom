@@ -183,7 +183,8 @@ def get_installed_plugins(plugins_base_dir=None):
     return result
 
 
-def uninstall_plugin(name, plugins_base_dir=None):
+def uninstall_plugin(name, plugins_base_dir=None,
+                     ignore_errors=False, quiet=False):
     _assert_plugins_base_initialized(plugins_base_dir)
     plugins_base_dir = _get_plugins_base_dir(plugins_base_dir)
     infos = get_plugin_info(name, mode="name",
@@ -193,14 +194,23 @@ def uninstall_plugin(name, plugins_base_dir=None):
     version = infos['metadatas']['version']
     release = infos['metadatas']['release']
     if release == 'dev_link':
-        _postuninstall_plugin(name, version, release)
+        preuninstall_status = _preuninstall_plugin(name, version, release,
+                                                   quiet=quiet)
+        if not preuninstall_status and not ignore_errors:
+            raise MFUtilPluginCantUninstall("can't uninstall plugin %s" % name)
         os.unlink(os.path.join(plugins_base_dir, name))
         return
+    preuninstall_status = _preuninstall_plugin(name, version, release)
+    if not preuninstall_status and not ignore_errors:
+        raise MFUtilPluginCantUninstall("can't uninstall plugin %s" % name)
     cmd = _get_rpm_cmd('-e --noscripts %s' % name,
                        plugins_base_dir=plugins_base_dir, add_prefix=False)
-    _postuninstall_plugin(name, version, release)
-    x = BashWrapperOrRaise(cmd, MFUtilPluginCantUninstall,
-                           "can't uninstall %s" % name)
+    try:
+        x = BashWrapperOrRaise(cmd, MFUtilPluginCantUninstall,
+                               "can't uninstall %s" % name)
+    except MFUtilPluginCantUninstall:
+        if not ignore_errors:
+            raise
     shutil.rmtree(os.path.join(plugins_base_dir, name), ignore_errors=True)
     infos = get_plugin_info(name, mode="name",
                             plugins_base_dir=plugins_base_dir)
@@ -212,21 +222,28 @@ def uninstall_plugin(name, plugins_base_dir=None):
                                         "(directory still here)" % name)
 
 
-def _postinstall_plugin(name, version, release):
+def _postinstall_plugin(name, version, release, quiet=False):
     res = BashWrapper("_plugins.postinstall %s %s %s" %
                       (name, version, release))
     if not res:
-        __get_logger().warning("error during postinstall: %s", res)
+        if not quiet:
+            __get_logger().warning("error during postinstall: %s", res)
+        return False
+    return True
 
 
-def _postuninstall_plugin(name, version, release):
-    res = BashWrapper("_plugins.postuninstall %s %s %s" %
+def _preuninstall_plugin(name, version, release, quiet=False):
+    res = BashWrapper("_plugins.preuninstall %s %s %s" %
                       (name, version, release))
     if not res:
-        __get_logger().warning("error during postuninstall: %s", res)
+        if not quiet:
+            __get_logger().warning("error during postuninstall: %s", res)
+        return False
+    return True
 
 
-def install_plugin(plugin_filepath, plugins_base_dir=None):
+def install_plugin(plugin_filepath, plugins_base_dir=None,
+                   ignore_errors=False, quiet=False):
     _assert_plugins_base_initialized(plugins_base_dir)
     if not os.path.isfile(plugin_filepath):
         raise MFUtilPluginFileNotFound("plugin file %s not found" %
@@ -252,7 +269,13 @@ def install_plugin(plugin_filepath, plugins_base_dir=None):
     if infos is None:
         raise MFUtilPluginCantInstall("can't install plugin %s" % name,
                                       bash_wrapper=x)
-    _postinstall_plugin(name, version, release)
+    postinstall_status = _postinstall_plugin(name, version, release,
+                                             quiet=quiet)
+    if not postinstall_status and not ignore_errors:
+        try:
+            uninstall_plugin(name, plugins_base_dir, True, True)
+        except Exception:
+            pass
 
 
 def _make_plugin_spec(dest_file, name, version, summary, license, packager,
@@ -269,7 +292,8 @@ def _make_plugin_spec(dest_file, name, version, summary, license, packager,
         f.write(res)
 
 
-def develop_plugin(plugin_path, name, plugins_base_dir=None):
+def develop_plugin(plugin_path, name, plugins_base_dir=None,
+                   ignore_errors=False, quiet=False):
     plugin_path = os.path.abspath(plugin_path)
     plugins_base_dir = _get_plugins_base_dir(plugins_base_dir)
     installed_infos = get_plugin_info(name, mode="name",
@@ -279,7 +303,13 @@ def develop_plugin(plugin_path, name, plugins_base_dir=None):
                                            name)
     shutil.rmtree(os.path.join(plugins_base_dir, name), True)
     os.symlink(plugin_path, os.path.join(plugins_base_dir, name))
-    _postinstall_plugin(name, "dev_link", "dev_link")
+    postinstall_status = _postinstall_plugin(name, "dev_link", "dev_link",
+                                             quiet=quiet)
+    if not postinstall_status and not ignore_errors:
+        try:
+            uninstall_plugin(name, plugins_base_dir, True, True)
+        except Exception:
+            pass
 
 
 def _is_dev_link_plugin(name, plugins_base_dir=None):

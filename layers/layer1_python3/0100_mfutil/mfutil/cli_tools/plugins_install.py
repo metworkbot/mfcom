@@ -13,6 +13,8 @@ def main():
     arg_parser = argparse.ArgumentParser(description=DESCRIPTION)
     arg_parser.add_argument("plugin_filepath", type=str,
                             help="plugin filepath")
+    arg_parser.add_argument("--force", help="ignore some errors",
+                            action="store_true")
     args = arg_parser.parse_args()
     echo_running("- Checking plugin file...")
     infos = get_plugin_info(args.plugin_filepath, mode="file")
@@ -23,7 +25,7 @@ def main():
     name = infos['metadatas']['name']
     echo_running("- Installing plugin %s..." % name)
     try:
-        install_plugin(args.plugin_filepath)
+        install_plugin(args.plugin_filepath, ignore_errors=args.force)
     except MFUtilPluginAlreadyInstalled as e:
         echo_nok("already installed")
         sys.exit(1)

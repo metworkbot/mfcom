@@ -13,11 +13,13 @@ def main():
     arg_parser = argparse.ArgumentParser(description=DESCRIPTION)
     arg_parser.add_argument("name", type=str,
                             help="plugin name")
+    arg_parser.add_argument("--force", help="ignore some errors",
+                            action="store_true")
     args = arg_parser.parse_args()
     name = args.name
     echo_running("- Uninstalling plugin %s..." % name)
     try:
-        uninstall_plugin(name)
+        uninstall_plugin(name, ignore_errors=args.force)
     except MFUtilPluginNotInstalled as e:
         echo_nok("not installed")
         sys.exit(1)
