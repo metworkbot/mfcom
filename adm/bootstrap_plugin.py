@@ -29,6 +29,9 @@ parser_create.add_argument("--template",
                            default="default",
                            help="the template to use for create the \
                            plugin")
+parser_create.add_argument("--no-input", action="store_true",
+                           help="pick default values and don't prompt "
+                           "anything")
 parser_create.add_argument("--make", action="store_true",
                            help="build the plugin")
 parser_create.add_argument("--install", action="store_true",
@@ -62,7 +65,8 @@ if os.path.isdir(args.plugin):
     parser.exit(1)
 
 extra_context = {"name": args.plugin}
-res = cookiecutter(template_path, extra_context=extra_context)
+res = cookiecutter(template_path, extra_context=extra_context,
+                   no_input=args.no_input)
 if MODULE == "MFDATA":
     # FIXME: why chmod +x *.py ???
     get_bash_output_or_die("cd %s && chmod +x *.py && "
@@ -75,7 +79,7 @@ get_bash_output_or_die("cd %s && bootstrap_plugin.post" % args.plugin)
 if args.make:
     print("Make plugin on directory %s" % args.plugin)
     os.chdir("%s" % args.plugin)
-    b = bash("make")
+    b = bash("make release")
     print("%s" % b.stdout)
 
     if b.code == 0:
