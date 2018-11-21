@@ -26,21 +26,28 @@ ifneq ("$(REQUIREMENTS2)","")
 	PREREQ:=$(REQUIREMENTS2) python2_virtualenv_sources/src
 	DEPLOY:=local/lib/python$(PYTHON2_SHORT_VERSION)/site-packages/requirements2.txt
 endif
+ifneq ("$(wildcard node_package.json)","")
+	PREREQ:=node_package-lock.json
+	PREREQ:=local/lib/package-lock.json
+	NODE_LOCK:=node_package-lock.json
+else
+	NODE_LOCK:=
+endif
 LAYERS=$(shell cat .layerapi2_dependencies |tr '\n' ',' |sed 's/,$$/\n/')
 
 all: $(PREREQ) custom $(DEPLOY)
 
 clean::
-	rm -Rf local *.plugin *.tar.gz python?_virtualenv_sources/*.tmp python?_virtualenv_sources/src python?_virtualenv_sources/freezed_requirements.* python?_virtualenv_sources/tempolayer*
+	rm -Rf local *.plugin *.tar.gz python?_virtualenv_sources/*.tmp python?_virtualenv_sources/src python?_virtualenv_sources/freezed_requirements.* python?_virtualenv_sources/tempolayer* tmp_build
 	find . -type d -name "__pycache__" -exec rm -Rf {} \; >/dev/null 2>&1 || true
 
 custom::
 	@echo "override me" >/dev/null
 
 superclean: clean
-	rm -Rf python?_virtualenv_sources/requirements?.txt python?_virtualenv_sources/prerequirements?.txt
+	rm -Rf python?_virtualenv_sources/requirements?.txt python?_virtualenv_sources/prerequirements?.txt node_package-lock.json
 
-freeze: superclean $(REQUIREMENTS3) $(REQUIREMENTS2)
+freeze: superclean $(REQUIREMENTS3) $(REQUIREMENTS2) $(NODE_LOCK)
 
 local/lib/python$(PYTHON3_SHORT_VERSION)/site-packages/requirements3.txt: $(REQUIREMENTS3) python3_virtualenv_sources/src
 	_install_plugin_virtualenv $(NAME) $(VERSION) $(RELEASE)
@@ -76,8 +83,23 @@ python2_virtualenv_sources/src: $(REQUIREMENTS2)
 	    cd python2_virtualenv_sources && layer_wrapper --empty --layers=$(LAYERS) -- download_compile_requirements requirements2.txt; \
 	fi
 
-release: clean custom $(PREREQ)
-	layer_wrapper --empty --layers=$(LAYERS) -- _plugins.make --show-plugin-path
+release: clean $(PREREQ) custom
+	layer_wrapper --empty --layers=$(LAYERS),python3@mfcom -- _plugins.make --show-plugin-path
 
 develop: $(PREREQ) custom $(DEPLOY)
 	_plugins.develop $(NAME)
+
+local/lib/package-lock.json: node_package-lock.json node_package.json
+	mkdir -p local/lib/node_modules
+	cp -f node_package.json local/lib/package.json
+	cp -f node_package-lock.json local/lib/package-lock.json
+	cd local/lib && layer_wrapper --empty --layers=$(LAYERS) -- npm ci install
+	mkdir -p local/lib/node_modules
+
+node_package-lock.json: node_package.json
+	rm -Rf tmp_build
+	mkdir -p tmp_build
+	cp $< tmp_build/package.json
+	cd tmp_build && layer_wrapper --empty --layers=$(LAYERS) -- npm install
+	cp -f tmp_build/package-lock.json $@
+	rm -Rf tmp_build
